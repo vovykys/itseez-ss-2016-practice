@@ -19,8 +19,29 @@ bool MedianFlowTracker::Init(const cv::Mat &frame, const cv::Rect &roi)
 {
 	frame_= frame;
 	position_=roi;
+	return 0;
 }
+template<class T>
+void quickSortR( std::vector<T> a, long N)
+{
+	// На входе - массив a[], a[N] - его последний элемент.
 
+	long i = 0, j = N - 1; 		// поставить указатели на исходные места
+	T temp, p;
+
+	p = a[N >> 1];		// центральный элемент
+
+						// процедура разделения
+	do {
+		while (a[i] < p) i++;
+		while (a[j] > p) j--;
+
+		if (i <= j) {
+			temp = a[i]; a[i] = a[j]; a[j] = temp;
+			i++; j--;
+		}
+	} while (i <= j);
+}
 Rect MedianFlowTracker::Track(const cv::Mat &frame)
 {
 
@@ -28,7 +49,9 @@ Rect MedianFlowTracker::Track(const cv::Mat &frame)
 	std::vector<Point2f> nextPts;
 	std::vector<bool> status;
 	std::vector<bool> err;
-	cv::goodFeaturesToTrack(frame_, prevPts, 100,0.01,5);
+	Mat p;
+	Mat pos=p(position_);
+	cv::goodFeaturesToTrack(pos, prevPts, 100,0.01,5);
 	int k = 0;
 	cv::calcOpticalFlowPyrLK(frame_, frame, prevPts, nextPts, status, err);
 	for (int i = 0; i <status.size(); i++)
@@ -40,8 +63,8 @@ Rect MedianFlowTracker::Track(const cv::Mat &frame)
 			k++;
 		}
 	}
-	std::vector<float> dx;
-	std::vector<float> dy;
+	std::vector<double> dx;
+	std::vector<double> dy;
 
 	int x = 0, y = 0;
 	for (int i = 0; i <prevPts.size(); i++)
@@ -52,31 +75,33 @@ Rect MedianFlowTracker::Track(const cv::Mat &frame)
 		dy.push_back(y);
 	}
 	
-	template<class T>
-	void quickSortR(T* a, long N) {
-		// На входе - массив a[], a[N] - его последний элемент.
-
-		long i = 0, j = N - 1; 		// поставить указатели на исходные места
-		T temp, p;
-
-		p = a[N >> 1];		// центральный элемент
-
-							// процедура разделения
-		do {
-			while (a[i] < p) i++;
-			while (a[j] > p) j--;
-
-			if (i <= j) {
-				temp = a[i]; a[i] = a[j]; a[j] = temp;
-				i++; j--;
-			}
-		} while (i <= j);
-
+	
 		quickSortR(dx,dx.size());
 		quickSortR(dy, dy.size());
 
 		int medianX = dx[dx.size() / 2];
 		int medianY = dy[dy.size() / 2];
-		
 
+		position_.x += medianX;
+		position_.y += medianY;
+
+		std::vector<double> rPrev;
+		std::vector<double> rNext;
+		std::vector<double> dr;
+
+		for(int i = 0; i <prevPts.size(); i++)
+			for (int j = 0; j <prevPts.size(); j++)
+			{
+				rPrev[i] = sqrt(pow(prevPts[i].x - prevPts[j].x, 2) + pow(prevPts[i].y - prevPts[j].y, 2));
+				rNext[i] = sqrt(pow(nextPts[i].x - nextPts[j].x, 2) + pow(nextPts[i].y - nextPts[j].y, 2));
+				dr[i] = rNext[i] / rPrev[i];
+			}
+
+		quickSortR(dr, dr.size());
+		int medianSize = dr[dr.size() / 2];
+
+		position_.height *= medianSize;
+		position_.width *= medianSize;
+
+		return position_;
 }
