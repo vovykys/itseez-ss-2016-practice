@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "opencv2/core/core.hpp"
+#include "opencv2/opencv.hpp"
 
 class Tracker {
  public:
