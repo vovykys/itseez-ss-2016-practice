@@ -42,21 +42,29 @@ void quickSortR( std::vector<T> a, long N)
 		}
 	} while (i <= j);
 }
+
+#include <iostream>
+using std::cout;
+using std::endl;
+
 Rect MedianFlowTracker::Track(const cv::Mat &frame)
 {
 
 	std::vector<Point2f> prevPts;
 	std::vector<Point2f> nextPts;
-	std::vector<bool> status;
-	std::vector<bool> err;
-	Mat p;
-	Mat pos=p(position_);
+	std::vector<uchar> status;
+	std::vector<float> err;
+	Mat pos = frame_(position_);
+	cout << "0000" << endl;
 	cv::goodFeaturesToTrack(pos, prevPts, 100,0.01,5);
+	cout << prevPts.size() << endl;
 	int k = 0;
+	cout << "1111" << endl;
 	cv::calcOpticalFlowPyrLK(frame_, frame, prevPts, nextPts, status, err);
+	cout << "2222" << endl;
 	for (int i = 0; i <status.size(); i++)
 	{
-		if (status[i] == false)
+		if (!status[i])
 		{
 			nextPts.erase(nextPts.begin() + (i - k));
 			prevPts.erase(nextPts.begin() + (i - k));

@@ -75,24 +75,33 @@ int main(int argc, const char** argv) {
 	namedWindow(kSrcWindowName);
 
   MouseCallbackState mouse_state;
+  mouse_state.is_selection_started = false;
+  mouse_state.is_selection_finished = false;
   setMouseCallback(kSrcWindowName, OnMouse, &mouse_state);
 
+  Mat src;
+  video >> src;
   while (!mouse_state.is_selection_finished) {
-	  waitKey(1);
+	  imshow(kSrcWindowName, src);
+	  waitKey(100);
+	  video >> src;
   }
   Rect roi(mouse_state.point_first, mouse_state.point_second);
   MedianFlowTracker track;
+  Mat src_gray;
+  cvtColor(src, src_gray, CV_BGR2GRAY);
+  track.Init(src_gray, roi);
   
   while (true) {
 
-	  Mat src;
+	 
 	  video >> src;
 	  if (src.empty()) {
 		  break;
 	  }
-	  rectangle(src, roi, Scalar(0, 255, 0));
-	  track.Init(src, roi);
-	  roi = track.Track(src);
+	  rectangle(src, roi, Scalar(0, 255, 0), 2);
+	  cvtColor(src, src_gray, CV_BGR2GRAY);
+	  roi = track.Track(src_gray);
 
 	  // Show source image.
 	  imshow(kSrcWindowName, src);
