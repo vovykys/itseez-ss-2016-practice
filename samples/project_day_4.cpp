@@ -29,7 +29,7 @@ int main(int argc, const char** argv) {
 	  return 0;
   }
 
-  CascadeDetector det;
+  /*CascadeDetector det;
   det.Init(parser.get<string>("model"));
   if (parser.has("image")) {
 	 
@@ -122,7 +122,7 @@ int main(int argc, const char** argv) {
 
 	  }
 
-  }
+  }*/
   // Do something cool.
   cout << "This is empty template sample." << endl;
 
